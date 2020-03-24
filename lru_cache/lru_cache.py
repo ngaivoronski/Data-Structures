@@ -1,3 +1,5 @@
+from doubly_linked_list import DoublyLinkedList
+
 class LRUCache:
     """
     Our LRUCache class keeps track of the max number of nodes it
@@ -7,7 +9,10 @@ class LRUCache:
     to every node stored in the cache.
     """
     def __init__(self, limit=10):
-        pass
+        self.limit = limit
+        self.nodes = 0
+        self.orderList = DoublyLinkedList()
+        self.storage = {}
 
     """
     Retrieves the value associated with the given key. Also
@@ -17,7 +22,11 @@ class LRUCache:
     key-value pair doesn't exist in the cache.
     """
     def get(self, key):
-        pass
+        if key in self.storage.keys():
+            self.orderList.move_to_end(self.storage[key])
+            return self.storage[key].value
+        else:
+            return None
 
     """
     Adds the given key-value pair to the cache. The newly-
@@ -30,4 +39,36 @@ class LRUCache:
     the newly-specified value.
     """
     def set(self, key, value):
-        pass
+        # if key is in storage
+        if key in self.storage.keys():
+            # get the node from storage
+            node_to_update = self.storage[key]
+            # move it to the end
+            self.orderList.move_to_end(node_to_update)
+            # set the tail value to the new value
+            self.orderList.tail.value = value
+            # set the value of storage to the new tail
+            self.storage[key] = self.orderList.tail
+
+        # if the number of nodes are within the limit
+        elif self.nodes < self.limit:
+            # create a node and add it to the tail
+            new_node = self.orderList.add_to_tail(value)
+            # set the key to the new node
+            self.storage[key] = new_node
+            self.nodes += 1
+        
+        # if the limit of nodes has been reached
+        else:
+            # get the head node
+            value_to_remove = self.orderList.head
+            # remove the head from the orderList
+            self.orderList.remove_from_head()
+            # remove the head value from storage
+            self.storage = {k:v for k, v in self.storage.items() if v != value_to_remove}
+            # create a node and add it to the tail
+            new_node = self.orderList.add_to_tail(value)
+            # set the key to the new node
+            self.storage[key] = new_node
+
+
